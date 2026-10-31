@@ -5,9 +5,9 @@ import html
 from PIL import Image
 from transformers import BlipProcessor, BlipForConditionalGeneration
 
-# ---------------- PAGE CONFIG ----------------
+# ---------------- CONFIG ----------------
 st.set_page_config(
-    page_title="VisionAI | AI Image Captioning",
+    page_title="VisionAI | Image Captioning",
     page_icon="✦",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -15,7 +15,7 @@ st.set_page_config(
 
 MODEL_ID = "naeemajalal/image-captioning-blip-flickr8k"
 
-# ---------------- PREMIUM CSS ----------------
+# ---------------- PREMIUM COMPACT DESIGN ----------------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -26,8 +26,8 @@ st.markdown("""
 
 .stApp {
     background:
-        radial-gradient(ellipse at 15% 10%, #252052 0%, transparent 38%),
-        radial-gradient(ellipse at 90% 85%, #102e46 0%, transparent 40%),
+        radial-gradient(ellipse at 10% 10%, #252052 0%, transparent 38%),
+        radial-gradient(ellipse at 90% 90%, #102e46 0%, transparent 40%),
         #080c18;
     color: #f8fafc;
 }
@@ -36,64 +36,63 @@ header, footer, #MainMenu {
     visibility: hidden;
 }
 
-.block-container {
-    max-width: 1380px;
-    padding: 1rem 2.5rem 1rem;
-}
-
 [data-testid="stSidebar"] {
     display: none;
 }
 
+.block-container {
+    max-width: 1380px;
+    padding: 0.7rem 2rem 0.5rem;
+}
+
 .navbar {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 8px 0 18px;
-    border-bottom: 1px solid rgba(148,163,184,.15);
+    align-items: center;
+    padding: 5px 0 12px;
+    border-bottom: 1px solid rgba(148,163,184,.16);
 }
 
 .brand {
     display: flex;
     align-items: center;
-    gap: 12px;
-    font-size: 21px;
+    gap: 10px;
+    font-size: 20px;
     font-weight: 800;
     color: white;
-    letter-spacing: -.7px;
 }
 
 .brand-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg,#8b5cf6,#2563eb);
-    font-size: 21px;
-    box-shadow: 0 5px 25px #6246bb55;
+    font-size: 20px;
+    box-shadow: 0 5px 20px #6246bb55;
 }
 
-.nav-right {
+.nav-status {
     color: #a5b4cf;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
 }
 
 .status-dot {
     display: inline-block;
-    height: 8px;
     width: 8px;
-    background: #34d399;
+    height: 8px;
     border-radius: 50%;
-    margin-right: 7px;
-    box-shadow: 0 0 10px #34d399;
+    background: #34d399;
+    margin-right: 6px;
+    box-shadow: 0 0 9px #34d399;
 }
 
 .hero {
     text-align: center;
-    padding: 24px 0 22px;
+    padding: 17px 0 17px;
 }
 
 .eyebrow {
@@ -101,19 +100,19 @@ header, footer, #MainMenu {
     color: #c4b5fd;
     background: rgba(124,58,237,.15);
     border: 1px solid rgba(167,139,250,.3);
-    padding: 7px 15px;
+    padding: 5px 13px;
     border-radius: 30px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.4px;
 }
 
 .hero h1 {
-    font-size: clamp(34px, 4vw, 49px);
-    line-height: 1.15;
+    font-size: clamp(30px, 4vw, 44px);
+    line-height: 1.12;
     font-weight: 800;
-    letter-spacing: -2px;
-    margin: 13px 0 7px;
+    letter-spacing: -1.8px;
+    margin: 10px 0 5px;
     background: linear-gradient(90deg,#fff,#b9a6ff,#67e8f9);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -121,70 +120,63 @@ header, footer, #MainMenu {
 
 .hero p {
     color: #94a3b8;
-    font-size: 13px;
+    font-size: 12px;
     margin: 0;
 }
 
-.section-title {
+.section-heading {
     color: #f1f5f9;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
 }
 
-.section-subtitle {
+.section-desc {
     color: #8795ad;
-    font-size: 11px;
-    margin-bottom: 15px;
+    font-size: 10px;
+    margin-bottom: 12px;
 }
 
 .panel {
     background: linear-gradient(
         145deg,
-        rgba(30,41,70,.85),
-        rgba(15,23,42,.8)
+        rgba(30,41,70,.88),
+        rgba(15,23,42,.88)
     );
-    border: 1px solid rgba(148,163,184,.17);
-    border-radius: 19px;
-    padding: 20px;
-    min-height: 390px;
-    box-shadow: 0 15px 45px rgba(0,0,0,.18);
-}
-
-.upload-hint {
-    color: #a5b4cf;
-    font-size: 12px;
-    text-align: center;
-    margin: 8px 0;
+    border: 1px solid rgba(148,163,184,.19);
+    border-radius: 18px;
+    padding: 17px;
+    min-height: 350px;
+    box-shadow: 0 12px 35px rgba(0,0,0,.18);
 }
 
 [data-testid="stFileUploader"] {
     background: rgba(8,15,31,.65);
     border: 1px dashed #7564c7;
-    border-radius: 13px;
-    padding: 10px;
+    border-radius: 12px;
+    padding: 7px;
 }
 
 [data-testid="stFileUploader"] section {
-    padding: 5px;
+    padding: 3px;
 }
 
 [data-testid="stImage"] img {
-    max-height: 285px;
+    max-height: 235px;
     object-fit: contain;
     border-radius: 12px;
 }
 
 .stButton > button {
     width: 100%;
-    min-height: 47px;
+    min-height: 43px;
     border: 1px solid transparent;
-    border-radius: 12px;
+    border-radius: 11px;
     color: white;
     background: linear-gradient(100deg,#7c3aed,#315eea);
     font-weight: 700;
-    font-size: 13px;
-    box-shadow: 0 7px 25px rgba(91,67,210,.25);
+    font-size: 12px;
+    box-shadow: 0 6px 20px rgba(91,67,210,.25);
     transition: all .2s ease;
 }
 
@@ -192,92 +184,109 @@ header, footer, #MainMenu {
     color: white;
     border: 1px solid #a78bfa;
     transform: translateY(-2px);
-    box-shadow: 0 10px 28px rgba(91,67,210,.4);
+    background: linear-gradient(100deg,#6d28d9,#1d4ed8);
 }
 
 .result-empty {
-    height: 270px;
+    min-height: 245px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
     border: 1px dashed rgba(148,163,184,.25);
-    border-radius: 15px;
+    border-radius: 14px;
     background: rgba(8,15,31,.35);
-    padding: 20px;
+    padding: 15px;
 }
 
 .empty-icon {
-    font-size: 38px;
-    margin-bottom: 15px;
-    opacity: .8;
+    font-size: 34px;
+    margin-bottom: 12px;
+    color: #a78bfa;
 }
 
 .empty-title {
     color: #e2e8f0;
     font-weight: 700;
-    font-size: 15px;
+    font-size: 14px;
 }
 
 .empty-text {
     color: #8795ad;
-    font-size: 11px;
-    margin-top: 8px;
-    line-height: 1.7;
+    font-size: 10px;
+    margin-top: 7px;
+    line-height: 1.6;
 }
 
 .caption-card {
-    background: linear-gradient(135deg,rgba(88,54,160,.23),rgba(21,54,83,.45));
+    background: linear-gradient(135deg,rgba(88,54,160,.25),rgba(21,54,83,.5));
     border: 1px solid rgba(139,117,235,.42);
-    border-radius: 16px;
-    padding: 23px;
-    margin-top: 12px;
-    min-height: 180px;
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 8px;
+    min-height: 175px;
 }
 
 .caption-label {
     color: #b9a6ff;
     font-size: 10px;
     font-weight: 800;
-    letter-spacing: 1.5px;
-    margin-bottom: 15px;
+    letter-spacing: 1.3px;
+    margin-bottom: 13px;
 }
 
 .caption-text {
-    color: #fff;
-    font-size: 19px;
+    color: white;
+    font-size: 18px;
     font-weight: 600;
-    line-height: 1.6;
+    line-height: 1.55;
     overflow-wrap: anywhere;
 }
 
 .model-info {
     color: #8998b2;
-    font-size: 10px;
-    margin-top: 17px;
-    padding-top: 13px;
+    font-size: 9px;
+    margin-top: 15px;
+    padding-top: 10px;
     border-top: 1px solid rgba(148,163,184,.15);
 }
 
 .footer {
     text-align: center;
     color: #64748b;
-    font-size: 10px;
-    padding: 18px 0 0;
+    font-size: 9px;
+    padding: 12px 0 0;
 }
 
-@media(max-width: 800px) {
-    .block-container {
-        padding: .8rem 1rem;
+/* Compact desktop: avoid page-level scrolling */
+@media (min-width: 900px) and (min-height: 680px) {
+    .stApp {
+        height: 100vh;
+        overflow-y: hidden;
     }
+
+    .main .block-container {
+        height: 100vh;
+        overflow-y: hidden;
+    }
+}
+
+/* Smaller screens: allow natural scrolling */
+@media (max-width: 899px), (max-height: 679px) {
+    .block-container {
+        padding: .7rem 1rem 1.5rem;
+    }
+
     .panel {
         min-height: auto;
-        padding: 16px;
+        padding: 15px;
     }
+
     .hero {
-        padding: 22px 0;
+        padding: 17px 0;
     }
+
     .caption-text {
         font-size: 16px;
     }
@@ -286,17 +295,18 @@ header, footer, #MainMenu {
 """, unsafe_allow_html=True)
 
 
-# ---------------- MODEL LOADING ----------------
+# ---------------- MODEL ----------------
 @st.cache_resource
 def load_model():
     processor = BlipProcessor.from_pretrained(MODEL_ID)
     model = BlipForConditionalGeneration.from_pretrained(MODEL_ID)
-    model.eval()
 
     device = torch.device(
         "cuda" if torch.cuda.is_available() else "cpu"
     )
+
     model.to(device)
+    model.eval()
 
     return processor, model, device
 
@@ -308,8 +318,8 @@ st.markdown("""
         <div class="brand-icon">✦</div>
         VisionAI
     </div>
-    <div class="nav-right">
-        <span class="status-dot"></span> AI IMAGE ENGINE
+    <div class="nav-status">
+        <span class="status-dot"></span> AI ENGINE ONLINE
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -320,14 +330,14 @@ st.markdown("""
 <div class="hero">
     <span class="eyebrow">DEEP LEARNING · TRANSFER LEARNING</span>
     <h1>See Beyond the Image.</h1>
-    <p>Upload an image. Let artificial intelligence turn it into words.</p>
+    <p>Transform your images into meaningful words with AI.</p>
 </div>
 """, unsafe_allow_html=True)
 
 
 # ---------------- LOAD MODEL ----------------
 try:
-    with st.spinner("Initializing VisionAI engine..."):
+    with st.spinner("Initializing VisionAI..."):
         processor, model, device = load_model()
 
 except Exception as e:
@@ -335,22 +345,21 @@ except Exception as e:
     st.stop()
 
 
-# ---------------- MAIN DASHBOARD ----------------
+# ---------------- DASHBOARD ----------------
 left, right = st.columns([1, 1], gap="large")
 
 with left:
     st.markdown("""
     <div class="panel">
-        <div class="section-title">01 / Image Workspace</div>
-        <div class="section-subtitle">
-            Upload your image to begin the analysis
+        <div class="section-heading">01 / IMAGE WORKSPACE</div>
+        <div class="section-desc">
+            Upload an image to start
         </div>
     """, unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader(
-        "Choose an image",
-        type=["jpg", "jpeg", "png"],
-        label="Upload image"
+        "Upload image",
+        type=["jpg", "jpeg", "png"]
     )
 
     if uploaded_file:
@@ -368,17 +377,7 @@ with left:
             use_container_width=True
         )
 
-        st.markdown(
-            f'<p class="upload-hint">{html.escape(uploaded_file.name)}</p>',
-            unsafe_allow_html=True
-        )
-
-    else:
-        st.markdown("""
-        <div class="upload-hint">
-            JPG, JPEG or PNG · Select an image to continue
-        </div>
-        """, unsafe_allow_html=True)
+        st.caption(uploaded_file.name)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -386,21 +385,18 @@ with left:
 with right:
     st.markdown("""
     <div class="panel">
-        <div class="section-title">02 / AI Caption Studio</div>
-        <div class="section-subtitle">
-            Your image description will appear here
+        <div class="section-heading">02 / AI CAPTION STUDIO</div>
+        <div class="section-desc">
+            Your intelligent image description
         </div>
     """, unsafe_allow_html=True)
 
     if uploaded_file:
-        generate = st.button(
-            "✦  Generate Image Caption",
-            use_container_width=True
-        )
 
-        if generate:
+        if st.button("✦  GENERATE IMAGE CAPTION"):
             try:
-                with st.spinner("VisionAI is understanding your image..."):
+                with st.spinner("Analyzing your image..."):
+
                     inputs = processor(
                         images=image,
                         return_tensors="pt"
@@ -420,7 +416,7 @@ with right:
                     st.session_state["caption"] = caption
 
             except Exception as e:
-                st.error(f"Caption generation failed: {e}")
+                st.error(f"Prediction failed: {e}")
 
         if st.session_state.get("caption"):
             safe_caption = html.escape(
@@ -430,11 +426,11 @@ with right:
             st.markdown(f"""
             <div class="caption-card">
                 <div class="caption-label">
-                    ✦ GENERATED DESCRIPTION
+                    ✦ AI GENERATED DESCRIPTION
                 </div>
                 <div class="caption-text">{safe_caption}</div>
                 <div class="model-info">
-                    MODEL: FINE-TUNED BLIP · FLICKR8K
+                    FINE-TUNED BLIP · FLICKR8K DATASET
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -443,10 +439,10 @@ with right:
             st.markdown("""
             <div class="result-empty">
                 <div class="empty-icon">✧</div>
-                <div class="empty-title">Ready to understand your image</div>
+                <div class="empty-title">Your caption awaits</div>
                 <div class="empty-text">
-                    Click Generate Image Caption.<br>
-                    Your AI-generated description will appear here.
+                    Click Generate Image Caption<br>
+                    to see your AI-generated result.
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -455,10 +451,10 @@ with right:
         st.markdown("""
         <div class="result-empty">
             <div class="empty-icon">✧</div>
-            <div class="empty-title">Your caption awaits</div>
+            <div class="empty-title">Ready to analyze</div>
             <div class="empty-text">
-                Upload an image in the workspace<br>
-                to activate the AI caption generator.
+                Upload an image to activate<br>
+                the caption generator.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -469,7 +465,6 @@ with right:
 # ---------------- FOOTER ----------------
 st.markdown("""
 <div class="footer">
-    VISIONAI &nbsp;·&nbsp; POWERED BY BLIP &nbsp;·&nbsp;
-    DEEP LEARNING PROJECT
+    VISIONAI · POWERED BY FINE-TUNED BLIP
 </div>
 """, unsafe_allow_html=True)
