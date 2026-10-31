@@ -1,411 +1,431 @@
+import hashlib
+import html
+import time
+
 import streamlit as st
 import torch
-import hashlib
-from PIL import Image
+from PIL import Image, ImageOps
 from transformers import BlipProcessor, BlipForConditionalGeneration
 
-# ---------------- PAGE CONFIG ----------------
+# ---------------- CONFIG ----------------
 st.set_page_config(
-    page_title="Vision AI | Image Captioning",
-    page_icon="✦",
+    page_title="VisionAI | Image Captioning",
+    page_icon="◐",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="collapsed",
 )
 
 MODEL_ID = "naeemajalal/image-captioning-blip-flickr8k"
 
-# ---------------- MODEL LOADING ----------------
-@st.cache_resource
-def load_model():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    processor = BlipProcessor.from_pretrained(MODEL_ID)
-    model = BlipForConditionalGeneration.from_pretrained(MODEL_ID)
-
-    model.to(device)
-    model.eval()
-
-    return processor, model, device
-
-
-# ---------------- CUSTOM CSS ----------------
-st.markdown("""
+# ---------------- STYLE ----------------
+st.markdown(
+    """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap');
 
-* {
-    font-family: 'Inter', sans-serif;
+:root {
+    --bg: #0d1015;
+    --surface: #141920;
+    --surface-2: #1a212b;
+    --line: #262f3b;
+    --text: #eaeef3;
+    --muted: #8a96a8;
+    --accent: #f2b84b;
+    --accent-ink: #1b1403;
+    --ok: #5fd3b0;
 }
 
-html, body, [data-testid="stAppViewContainer"] {
-    background: #080b16;
-    color: #ffffff;
+.stApp {
+    font-family: 'Manrope', sans-serif;
+    background:
+        radial-gradient(900px 500px at 85% -10%, rgba(242,184,75,.08), transparent 60%),
+        radial-gradient(800px 500px at -5% 110%, rgba(95,211,176,.06), transparent 60%),
+        var(--bg);
+    color: var(--text);
 }
 
-[data-testid="stHeader"] {
-    background: transparent;
+.stButton > button,
+[data-testid="stFileUploader"] button {
+    font-family: 'Manrope', sans-serif;
 }
 
-[data-testid="stToolbar"] {
-    display: none;
-}
-
-[data-testid="stSidebar"] {
-    display: none;
+/* hide Streamlit chrome */
+header[data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"],
+footer, #MainMenu, [data-testid="stSidebar"], [data-testid="collapsedControl"] {
+    display: none !important;
 }
 
 .block-container {
-    max-width: 1450px;
-    padding: 1rem 2.5rem 0.5rem;
+    max-width: 1320px;
+    padding: 1rem 2rem 1rem !important;
 }
 
-[data-testid="stAppViewContainer"] {
-    height: 100vh;
-    overflow: hidden;
-}
-
-[data-testid="stMain"] {
-    height: calc(100vh - 10px);
-    overflow: hidden;
-}
-
-.main-title {
-    font-size: 34px;
-    font-weight: 800;
-    letter-spacing: -1.5px;
-    margin: 0;
-    background: linear-gradient(90deg, #ffffff, #a78bfa, #60a5fa);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.subtitle {
-    color: #929bb5;
-    font-size: 13px;
-    margin-top: 5px;
-}
-
-.navbar {
+/* ---------- top bar ---------- */
+.topbar {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 5px 0 15px;
-    border-bottom: 1px solid #222941;
-    margin-bottom: 22px;
+    justify-content: space-between;
+    height: 44px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 4px;
 }
-
-.brand {
-    font-size: 19px;
-    font-weight: 800;
-    color: #ffffff;
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark {
+    width: 32px; height: 32px; border-radius: 9px;
+    display: grid; place-items: center;
+    background: var(--accent); color: var(--accent-ink);
+    font-size: 18px; font-weight: 800;
 }
-
-.brand span {
-    color: #a78bfa;
-}
-
+.brand-name { font-size: 18px; font-weight: 800; letter-spacing: -.3px; }
+.brand-sub { color: var(--muted); font-size: 12.5px; font-weight: 500; margin-left: 4px; }
 .status {
-    background: #142c29;
-    border: 1px solid #235c4d;
-    color: #66e0b5;
-    border-radius: 20px;
-    padding: 6px 13px;
-    font-size: 11px;
+    display: flex; align-items: center; gap: 8px;
+    color: var(--muted); font-size: 12.5px; font-weight: 600;
+    padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px;
+    background: var(--surface);
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+
+/* ---------- panels (st.container(border=True)) ---------- */
+div[data-testid="stVerticalBlockBorderWrapper"] {
+    background: var(--surface);
+    border: 1px solid var(--line) !important;
+    border-radius: 18px !important;
+    padding: 6px 10px;
+    height: calc(100vh - 118px);
+    overflow: hidden;
 }
 
-.hero {
-    text-align: center;
-    margin-bottom: 22px;
-}
+.panel-title { font-size: 16px; font-weight: 700; margin: 4px 0 2px; }
+.panel-desc { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
 
-.panel {
-    background: linear-gradient(145deg, #151b30, #101526);
-    border: 1px solid #28314d;
-    border-radius: 18px;
-    padding: 20px;
-    height: 410px;
-    box-shadow: 0 10px 35px rgba(0,0,0,0.18);
+/* ---------- uploader ---------- */
+[data-testid="stFileUploader"] label { display: none; }
+[data-testid="stFileUploaderDropzone"] {
+    background: var(--surface-2);
+    border: 1.5px dashed #3a4656;
+    border-radius: 14px;
+    padding: 12px 16px;
+    transition: border-color .2s ease, background .2s ease;
 }
-
-.panel-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #ffffff;
-    margin-bottom: 5px;
+[data-testid="stFileUploaderDropzone"]:hover {
+    border-color: var(--accent);
+    background: #1e2631;
 }
-
-.panel-subtitle {
-    color: #929bb5;
-    font-size: 12px;
-    margin-bottom: 17px;
-}
-
-.caption-placeholder {
-    background: #0b1020;
-    border: 1px solid #28314d;
-    border-radius: 13px;
-    padding: 20px;
-    min-height: 130px;
-    color: #aab3ca;
-    font-size: 14px;
-    line-height: 1.7;
-}
-
-.caption-result {
-    background: linear-gradient(135deg, #171e36, #101a2e);
-    border: 1px solid #6250a8;
-    border-radius: 13px;
-    padding: 20px;
-    min-height: 130px;
-    color: #f0edff;
-    font-size: 15px;
-    line-height: 1.8;
-}
-
-.caption-label {
-    color: #a78bfa;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    margin-bottom: 12px;
-}
-
-div.stButton > button {
-    width: 100%;
-    height: 47px;
+[data-testid="stFileUploaderDropzone"] button {
+    background: var(--accent);
+    color: var(--accent-ink);
     border: none;
-    border-radius: 12px;
-    background: linear-gradient(100deg, #7655e8, #3978ec);
-    color: white;
-    font-size: 14px;
-    font-weight: 700;
-    transition: 0.2s ease;
-}
-
-div.stButton > button:hover {
-    border: none;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 20px #6549cf55;
-    color: white;
-}
-
-div.stButton > button:disabled {
-    background: #30374c;
-    color: #929bb5;
-}
-
-[data-testid="stFileUploader"] {
-    background: #0b1020;
-    border: 1px dashed #7560c5;
-    border-radius: 13px;
-    padding: 12px;
-}
-
-[data-testid="stFileUploader"] section {
-    background: transparent;
-}
-
-[data-testid="stFileUploader"] button {
-    background: #292348;
-    color: white;
-    border: 1px solid #7560c5;
     border-radius: 9px;
+    font-weight: 700;
 }
+[data-testid="stFileUploaderDropzone"] button:hover { filter: brightness(1.08); color: var(--accent-ink); }
+[data-testid="stFileUploaderDropzone"] small { color: var(--muted); }
 
-[data-testid="stFileUploader"] small {
-    color: #929bb5;
-}
-
-[data-testid="stImage"] {
+/* ---------- viewfinder preview ---------- */
+.frame, [data-testid="stImage"] {
+    --c: var(--accent);
+    background:
+        linear-gradient(var(--c), var(--c)) top left / 22px 2px no-repeat,
+        linear-gradient(var(--c), var(--c)) top left / 2px 22px no-repeat,
+        linear-gradient(var(--c), var(--c)) top right / 22px 2px no-repeat,
+        linear-gradient(var(--c), var(--c)) top right / 2px 22px no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom left / 22px 2px no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom left / 2px 22px no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom right / 22px 2px no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom right / 2px 22px no-repeat;
+    padding: 12px;
     display: flex;
     justify-content: center;
+    align-items: center;
 }
-
-.footer {
+[data-testid="stImage"] img {
+    width: auto !important;
+    max-width: 100%;
+    max-height: calc(100vh - 400px);
+    min-height: 120px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+[data-testid="stImageCaption"], [data-testid="stCaptionContainer"] {
+    color: var(--muted);
+    font-size: 12px;
     text-align: center;
-    color: #66718e;
-    font-size: 11px;
-    padding-top: 14px;
+}
+.frame {
+    height: calc(100vh - 400px);
+    min-height: 160px;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+}
+.frame-title { font-weight: 700; font-size: 15px; }
+.frame-text { color: var(--muted); font-size: 13px; }
+
+/* ---------- controls ---------- */
+.stButton > button {
+    width: 100%;
+    min-height: 48px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: .1px;
+    transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
+    box-shadow: 0 8px 24px rgba(242,184,75,.18);
+}
+.stButton > button:hover {
+    color: var(--accent-ink);
+    border-color: transparent;
+    filter: brightness(1.07);
+    transform: translateY(-1px);
+}
+.stButton > button:active { transform: translateY(0); }
+.stButton > button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.stButton > button:disabled {
+    background: var(--surface-2);
+    color: var(--muted);
+    box-shadow: none;
+    border: 1px solid var(--line);
 }
 
-@media (max-width: 900px) {
-    [data-testid="stAppViewContainer"],
-    [data-testid="stMain"] {
-        height: auto;
-        min-height: 100vh;
-        overflow: auto;
-    }
+[data-testid="stRadio"] label p { color: var(--muted); font-size: 13px; font-weight: 600; }
+[data-testid="stRadio"] [role="radiogroup"] { gap: 6px; }
 
-    .block-container {
-        padding: 1rem;
-    }
+/* ---------- result ---------- */
+.state {
+    height: calc(100vh - 330px);
+    min-height: 200px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center; gap: 8px;
+    border: 1.5px dashed var(--line); border-radius: 14px;
+    background: var(--surface-2);
+    padding: 16px;
+}
+.state-icon { font-size: 30px; color: var(--accent); }
+.state-title { font-weight: 700; font-size: 15px; }
+.state-text { color: var(--muted); font-size: 13px; line-height: 1.6; }
 
-    .panel {
-        height: auto;
-        min-height: 350px;
-    }
+.result {
+    border-left: 3px solid var(--accent);
+    background: var(--surface-2);
+    border-radius: 4px 14px 14px 4px;
+    padding: 18px 22px;
+    margin: 4px 0 8px;
+    animation: reveal .5s ease both;
+}
+.result-label { color: var(--muted); font-size: 12.5px; font-weight: 600; margin-bottom: 8px; }
+.result-text {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: clamp(22px, 2.3vw, 30px);
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: -.2px;
+    color: #fff;
+    overflow-wrap: anywhere;
+    text-transform: capitalize;
+}
+.meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.chip {
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px;
+}
+@keyframes reveal {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .result { animation: none; } }
 
-    .main-title {
-        font-size: 27px;
+[data-testid="stCode"] pre { background: var(--surface-2) !important; border: 1px solid var(--line); border-radius: 10px; }
+
+/* ---------- single screen (no page scroll) on desktop ---------- */
+@media (min-width: 900px) and (min-height: 700px) {
+    html, body, .stApp, [data-testid="stAppViewContainer"],
+    [data-testid="stMain"], section.main {
+        height: 100vh;
+        overflow: hidden !important;
     }
+}
+
+/* small screens: allow natural scrolling */
+@media (max-width: 899px), (max-height: 699px) {
+    .block-container { padding: .8rem 1rem 1.5rem !important; }
+    div[data-testid="stVerticalBlockBorderWrapper"] { height: auto; overflow: visible; }
+    .frame, .state { height: auto; min-height: 220px; }
+    [data-testid="stImage"] img { max-height: 320px; }
+    .brand-sub { display: none; }
 }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 
-# ---------------- NAVBAR ----------------
-st.markdown("""
-<div class="navbar">
-    <div class="brand">VISION<span>AI</span> ✦</div>
-    <div class="status">● AI MODEL ONLINE</div>
+# ---------------- MODEL ----------------
+@st.cache_resource(show_spinner=False)
+def load_model():
+    processor = BlipProcessor.from_pretrained(MODEL_ID)
+    model = BlipForConditionalGeneration.from_pretrained(MODEL_ID)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    model.eval()
+    return processor, model, device
+
+
+try:
+    with st.spinner("Loading model…"):
+        processor, model, device = load_model()
+except Exception as e:
+    st.error(f"Model loading failed: {e}")
+    st.stop()
+
+# ---------------- TOP BAR ----------------
+st.markdown(
+    f"""
+<div class="topbar">
+    <div class="brand">
+        <div class="brand-mark">◐</div>
+        <span class="brand-name">VisionAI</span>
+        <span class="brand-sub">Image captioning with fine-tuned BLIP</span>
+    </div>
+    <div class="status"><span class="dot"></span>Model ready · {device.type.upper()}</div>
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
+# ---------------- DASHBOARD ----------------
+left, right = st.columns([1, 1], gap="medium")
+image = None
+uploaded_file = None
 
-# ---------------- HERO ----------------
-st.markdown("""
-<div class="hero">
-    <p class="main-title">Image Intelligence Studio</p>
-    <p class="subtitle">
-        Transform your images into meaningful descriptions with AI
-    </p>
-</div>
-""", unsafe_allow_html=True)
-
-
-# ---------------- SESSION STATE ----------------
-if "caption" not in st.session_state:
-    st.session_state.caption = ""
-
-if "image_hash" not in st.session_state:
-    st.session_state.image_hash = ""
-
-
-# ---------------- TWO MAIN SECTIONS ----------------
-left, right = st.columns([1, 1], gap="large")
-
-
-# LEFT: CAPTION STUDIO
+# ----- left: image -----
 with left:
-    st.markdown("""
-    <div class="panel">
-        <div class="panel-title">✦ Caption Studio</div>
-        <div class="panel-subtitle">
-            AI-generated description of your image
-        </div>
-    """, unsafe_allow_html=True)
-
-    if st.session_state.caption:
+    with st.container(border=True):
         st.markdown(
-            f'<div class="caption-label">GENERATED CAPTION</div>'
-            f'<div class="caption-result">{st.session_state.caption}</div>',
-            unsafe_allow_html=True
+            '<div class="panel-title">Your image</div>'
+            '<div class="panel-desc">JPG or PNG. Drop a file or browse.</div>',
+            unsafe_allow_html=True,
         )
-    else:
-        st.markdown("""
-        <div class="caption-label">YOUR CAPTION WILL APPEAR HERE</div>
-        <div class="caption-placeholder">
-            Upload an image on the right and click Generate Caption
-            to see the AI-generated description.
-        </div>
-        """, unsafe_allow_html=True)
 
-    st.write("")
-    generate = st.button(
-        "✦  Generate Caption",
-        use_container_width=True,
-        disabled="uploaded_image" not in st.session_state
-    )
+        uploaded_file = st.file_uploader(
+            "Upload image",
+            type=["jpg", "jpeg", "png"],
+            label_visibility="collapsed",
+        )
 
-    st.markdown("</div>", unsafe_allow_html=True)
+        if uploaded_file:
+            image_bytes = uploaded_file.getvalue()
+            image_id = hashlib.sha256(image_bytes).hexdigest()
 
+            if st.session_state.get("image_id") != image_id:
+                st.session_state["image_id"] = image_id
+                st.session_state["caption"] = None
+                st.session_state["meta"] = None
 
-# RIGHT: IMAGE UPLOAD
-with right:
-    st.markdown("""
-    <div class="panel">
-        <div class="panel-title">▧ Upload Image</div>
-        <div class="panel-subtitle">
-            Select an image for AI analysis
-        </div>
-    """, unsafe_allow_html=True)
-
-    uploaded_file = st.file_uploader(
-        "Choose your image",
-        type=["jpg", "jpeg", "png"],
-        label_visibility="collapsed"
-    )
-
-    if uploaded_file:
-        image = Image.open(uploaded_file).convert("RGB")
-        image_hash = hashlib.sha256(uploaded_file.getvalue()).hexdigest()
-
-        if image_hash != st.session_state.image_hash:
-            st.session_state.image_hash = image_hash
-            st.session_state.caption = ""
-            st.session_state.uploaded_image = image
-
-        st.image(image, width=320)
-
-    else:
-        st.session_state.pop("uploaded_image", None)
-        st.session_state.image_hash = ""
-        st.session_state.caption = ""
-
-        st.markdown("""
-        <div style="
-            height:180px;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            background:#0b1020;
-            border:1px dashed #3c4562;
-            border-radius:13px;
-            color:#77829e;
-            font-size:13px;">
-            Your image preview will appear here
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-
-# ---------------- GENERATE CAPTION ----------------
-if generate and "uploaded_image" in st.session_state:
-
-    try:
-        with st.spinner("AI is analyzing your image..."):
-
-            processor, model, device = load_model()
-
-            inputs = processor(
-                images=st.session_state.uploaded_image,
-                return_tensors="pt"
-            ).to(device)
-
-            with torch.no_grad():
-                output = model.generate(
-                    **inputs,
-                    max_new_tokens=50,
-                    num_beams=5
-                )
-
-            caption = processor.decode(
-                output[0],
-                skip_special_tokens=True
+            image = ImageOps.exif_transpose(Image.open(uploaded_file)).convert("RGB")
+            st.image(image)
+        else:
+            st.session_state["image_id"] = None
+            st.session_state["caption"] = None
+            st.markdown(
+                """
+                <div class="frame">
+                    <div class="frame-title">No image yet</div>
+                    <div class="frame-text">Your photo will appear here.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
 
-            st.session_state.caption = caption
+# ----- right: caption -----
+with right:
+    with st.container(border=True):
+        st.markdown(
+            '<div class="panel-title">Caption</div>'
+            '<div class="panel-desc">A one-line description of what the model sees.</div>',
+            unsafe_allow_html=True,
+        )
 
-        st.rerun()
+        mode = st.radio(
+            "Mode",
+            ["Quick", "Accurate"],
+            horizontal=True,
+            help="Quick is fastest. Accurate uses beam search and takes a little longer.",
+        )
 
-    except Exception as e:
-        st.error(f"Caption generation failed: {e}")
+        has_caption = bool(st.session_state.get("caption"))
+        clicked = st.button(
+            "Regenerate caption" if has_caption else "Generate caption",
+            disabled=image is None,
+            use_container_width=True,
+        )
 
+        if clicked and image is not None:
+            try:
+                with st.spinner("Describing your image…"):
+                    start = time.time()
+                    inputs = processor(images=image, return_tensors="pt").to(device)
 
-# ---------------- FOOTER ----------------
-st.markdown("""
-<div class="footer">
-    POWERED BY FINE-TUNED BLIP MODEL · FLICKR8K DATASET
-</div>
-""", unsafe_allow_html=True)
+                    gen_kwargs = {"max_new_tokens": 40}
+                    if mode == "Accurate":
+                        gen_kwargs.update(num_beams=5, early_stopping=True)
+
+                    with torch.inference_mode():
+                        output = model.generate(**inputs, **gen_kwargs)
+
+                    caption = processor.decode(output[0], skip_special_tokens=True).strip()
+                    st.session_state["caption"] = caption
+                    st.session_state["meta"] = {
+                        "seconds": time.time() - start,
+                        "mode": mode,
+                        "words": len(caption.split()),
+                    }
+            except Exception as e:
+                st.error(f"Caption generation failed: {e}")
+
+        caption = st.session_state.get("caption")
+        meta = st.session_state.get("meta") or {}
+
+        if caption and image is not None:
+            st.markdown(
+                f"""
+                <div class="result">
+                    <div class="result-label">Generated caption</div>
+                    <div class="result-text">{html.escape(caption)}</div>
+                    <div class="meta">
+                        <span class="chip">{meta.get('words', 0)} words</span>
+                        <span class="chip">{meta.get('seconds', 0):.1f}s</span>
+                        <span class="chip">{html.escape(str(meta.get('mode', '')))} mode</span>
+                        <span class="chip">BLIP · Flickr8k</span>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            st.code(caption, language=None)
+        elif image is not None:
+            st.markdown(
+                """
+                <div class="state">
+                    <div class="state-icon">◐</div>
+                    <div class="state-title">Ready when you are</div>
+                    <div class="state-text">Press Generate caption to describe this image.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                """
+                <div class="state">
+                    <div class="state-icon">◐</div>
+                    <div class="state-title">Upload an image to begin</div>
+                    <div class="state-text">Add a photo on the left,<br>then generate its caption here.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
