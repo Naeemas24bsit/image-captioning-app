@@ -24,22 +24,25 @@ st.markdown(
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap');
 
 :root {
-    --bg: #0d1015;
-    --surface: #141920;
-    --surface-2: #1a212b;
-    --line: #262f3b;
-    --text: #eaeef3;
-    --muted: #8a96a8;
-    --accent: #f2b84b;
-    --accent-ink: #1b1403;
-    --ok: #5fd3b0;
+    --bg: #080a16;
+    --surface: #10132b;
+    --surface-2: #171b3a;
+    --line: #2a3066;
+    --text: #eef0ff;
+    --muted: #9aa1cc;
+    --accent: #8b7bff;
+    --accent-2: #ff6fa5;
+    --accent-3: #5eead4;
+    --grad: linear-gradient(115deg, #6d5dfc 0%, #b04fd8 52%, #ff6b9d 100%);
+    --ok: #5eead4;
 }
 
 .stApp {
     font-family: 'Manrope', sans-serif;
     background:
-        radial-gradient(900px 500px at 85% -10%, rgba(242,184,75,.08), transparent 60%),
-        radial-gradient(800px 500px at -5% 110%, rgba(95,211,176,.06), transparent 60%),
+        radial-gradient(900px 520px at -5% -10%, rgba(109,93,252,.22), transparent 60%),
+        radial-gradient(800px 520px at 105% 110%, rgba(255,107,157,.14), transparent 60%),
+        radial-gradient(600px 400px at 100% -5%, rgba(94,234,212,.08), transparent 60%),
         var(--bg);
     color: var(--text);
 }
@@ -74,8 +77,9 @@ footer, #MainMenu, [data-testid="stSidebar"], [data-testid="collapsedControl"] {
 .brand-mark {
     width: 32px; height: 32px; border-radius: 9px;
     display: grid; place-items: center;
-    background: var(--accent); color: var(--accent-ink);
+    background: var(--grad); color: #fff;
     font-size: 18px; font-weight: 800;
+    box-shadow: 0 6px 18px rgba(109,93,252,.35);
 }
 .brand-name { font-size: 18px; font-weight: 800; letter-spacing: -.3px; }
 .brand-sub { color: var(--muted); font-size: 12.5px; font-weight: 500; margin-left: 4px; }
@@ -83,18 +87,19 @@ footer, #MainMenu, [data-testid="stSidebar"], [data-testid="collapsedControl"] {
     display: flex; align-items: center; gap: 8px;
     color: var(--muted); font-size: 12.5px; font-weight: 600;
     padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px;
-    background: var(--surface);
+    background: rgba(23,27,58,.6);
 }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); }
 
 /* ---------- panels (st.container(border=True)) ---------- */
 div[data-testid="stVerticalBlockBorderWrapper"] {
-    background: var(--surface);
-    border: 1px solid var(--line) !important;
+    background: linear-gradient(160deg, rgba(23,27,62,.92), rgba(14,17,40,.92));
+    border: 1px solid rgba(139,123,255,.24) !important;
     border-radius: 18px !important;
     padding: 6px 10px;
     height: calc(100vh - 118px);
     overflow: hidden;
+    box-shadow: 0 18px 40px rgba(0,0,0,.28);
 }
 
 .panel-title { font-size: 16px; font-weight: 700; margin: 4px 0 2px; }
@@ -103,29 +108,32 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 /* ---------- uploader ---------- */
 [data-testid="stFileUploader"] label { display: none; }
 [data-testid="stFileUploaderDropzone"] {
-    background: var(--surface-2);
-    border: 1.5px dashed #3a4656;
+    background: rgba(23,27,58,.7);
+    border: 1.5px dashed #3d4590;
     border-radius: 14px;
     padding: 12px 16px;
     transition: border-color .2s ease, background .2s ease;
 }
 [data-testid="stFileUploaderDropzone"]:hover {
     border-color: var(--accent);
-    background: #1e2631;
+    background: rgba(30,35,76,.8);
 }
-[data-testid="stFileUploaderDropzone"] button {
-    background: var(--accent);
-    color: var(--accent-ink);
-    border: none;
+[data-testid="stFileUploaderDropzone"] button,
+[data-testid="stFileUploaderDropzone"] button:hover,
+[data-testid="stFileUploaderDropzone"] button:focus,
+[data-testid="stFileUploaderDropzone"] button:active {
+    background: var(--grad) !important;
+    color: #fff !important;
+    border: none !important;
     border-radius: 9px;
     font-weight: 700;
+    box-shadow: 0 4px 12px rgba(109,93,252,.25);
 }
-[data-testid="stFileUploaderDropzone"] button:hover { filter: brightness(1.08); color: var(--accent-ink); }
 [data-testid="stFileUploaderDropzone"] small { color: var(--muted); }
 
 /* ---------- viewfinder preview ---------- */
 .frame, [data-testid="stImage"] {
-    --c: var(--accent);
+    --c: var(--accent-3);
     background:
         linear-gradient(var(--c), var(--c)) top left / 22px 2px no-repeat,
         linear-gradient(var(--c), var(--c)) top left / 2px 22px no-repeat,
@@ -164,32 +172,37 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 .frame-text { color: var(--muted); font-size: 13px; }
 
 /* ---------- controls ---------- */
-.stButton > button {
+.stButton > button,
+.stButton > button:hover,
+.stButton > button:focus:not(:active),
+.stButton > button:active {
     width: 100%;
     min-height: 48px;
     border-radius: 12px;
-    border: 1px solid transparent;
-    background: var(--accent);
-    color: var(--accent-ink);
+    border: none !important;
+    background: var(--grad) !important;
+    background-size: 140% 100% !important;
+    color: #fff !important;
     font-weight: 800;
     font-size: 15px;
     letter-spacing: .1px;
-    transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
-    box-shadow: 0 8px 24px rgba(242,184,75,.18);
+    box-shadow: 0 8px 22px rgba(109,93,252,.24);
+    transition: transform .15s ease, background-position .3s ease;
 }
+.stButton > button { background-position: 0% 0 !important; }
 .stButton > button:hover {
-    color: var(--accent-ink);
-    border-color: transparent;
-    filter: brightness(1.07);
+    background-position: 100% 0 !important;
     transform: translateY(-1px);
 }
 .stButton > button:active { transform: translateY(0); }
-.stButton > button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-.stButton > button:disabled {
-    background: var(--surface-2);
-    color: var(--muted);
+.stButton > button:focus-visible { outline: 2px solid var(--accent-3); outline-offset: 2px; }
+.stButton > button:disabled,
+.stButton > button:disabled:hover {
+    background: var(--surface-2) !important;
+    color: var(--muted) !important;
     box-shadow: none;
-    border: 1px solid var(--line);
+    border: 1px solid var(--line) !important;
+    transform: none;
 }
 
 [data-testid="stRadio"] label p { color: var(--muted); font-size: 13px; font-weight: 600; }
@@ -202,20 +215,29 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     text-align: center; gap: 8px;
     border: 1.5px dashed var(--line); border-radius: 14px;
-    background: var(--surface-2);
+    background: rgba(23,27,58,.55);
     padding: 16px;
 }
-.state-icon { font-size: 30px; color: var(--accent); }
+.state-icon { font-size: 30px; color: #b79cff; }
 .state-title { font-weight: 700; font-size: 15px; }
 .state-text { color: var(--muted); font-size: 13px; line-height: 1.6; }
 
 .result {
-    border-left: 3px solid var(--accent);
-    background: var(--surface-2);
-    border-radius: 4px 14px 14px 4px;
-    padding: 18px 22px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(109,93,252,.16), rgba(255,107,157,.08));
+    border: 1px solid rgba(139,123,255,.28);
+    border-radius: 14px;
+    padding: 18px 22px 18px 26px;
     margin: 4px 0 8px;
     animation: reveal .5s ease both;
+}
+.result::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #6d5dfc, #ff6b9d);
 }
 .result-label { color: var(--muted); font-size: 12.5px; font-weight: 600; margin-bottom: 8px; }
 .result-text {
@@ -230,8 +252,10 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 }
 .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .chip {
-    font-size: 12px; font-weight: 600; color: var(--muted);
-    border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px;
+    font-size: 12px; font-weight: 600; color: #c6caff;
+    background: rgba(139,123,255,.1);
+    border: 1px solid rgba(139,123,255,.28);
+    border-radius: 999px; padding: 4px 10px;
 }
 @keyframes reveal {
     from { opacity: 0; transform: translateY(6px); }
