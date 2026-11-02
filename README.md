@@ -32,6 +32,3 @@ Model Repository
 
 https://huggingface.co/naeemajalal/image-captioning-blip-flickr8k
 
-Author
-
-NAEEMA JALAL
